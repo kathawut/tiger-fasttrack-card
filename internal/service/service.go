@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"tiger-fasttrack-card/internal/repository"
 	"tiger-fasttrack-card/internal/utils"
 	"tiger-fasttrack-card/internal/models"
@@ -82,18 +83,34 @@ func (s *Service) RegisterCardOwner(userID uint, req *models.RegisterOwnerReques
 	return s.CardOwnerService.RegisterCardOwner(userID, req)
 }
 
+func (s *Service) RegisterMultipleCards(userID uint, req *models.RegisterMultipleCardsRequest) ([]models.CardOwner, error) {
+	return s.CardOwnerService.RegisterMultipleCards(userID, req)
+}
+
 func (s *Service) GetCardOwnerProfile(userID uint) (*models.CardOwnerWithCard, error) {
-	return s.CardOwnerService.GetCardOwnerProfile(userID)
+	// For backward compatibility, get the first card owner registration
+	profiles, err := s.CardOwnerService.GetCardOwnerProfiles(userID)
+	if err != nil {
+		return nil, err
+	}
+	if len(profiles) == 0 {
+		return nil, errors.New("card owner not found")
+	}
+	return &profiles[0], nil
+}
+
+func (s *Service) GetCardOwnerProfiles(userID uint) ([]models.CardOwnerWithCard, error) {
+	return s.CardOwnerService.GetCardOwnerProfiles(userID)
 }
 
 func (s *Service) GetAllCardOwners(userID uint) ([]models.CardOwnerWithCard, error) {
 	return s.CardOwnerService.GetAllCardOwners(userID)
 }
 
-func (s *Service) UpdateCardOwner(userID uint, req *models.UpdateCardOwnerRequest) (*models.CardOwner, error) {
-	return s.CardOwnerService.UpdateCardOwner(userID, req)
+func (s *Service) UpdateCardOwner(userID uint, cardOwnerID uint, req *models.UpdateCardOwnerRequest) (*models.CardOwner, error) {
+	return s.CardOwnerService.UpdateCardOwner(userID, cardOwnerID, req)
 }
 
-func (s *Service) DeleteCardOwner(userID uint) error {
-	return s.CardOwnerService.DeleteCardOwner(userID)
+func (s *Service) DeleteCardOwner(userID uint, cardOwnerID uint) error {
+	return s.CardOwnerService.DeleteCardOwner(userID, cardOwnerID)
 }

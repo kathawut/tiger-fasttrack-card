@@ -46,11 +46,18 @@ func Setup(router *gin.Engine, h *handlers.Handler, jwtSecret string) {
 		cardOwners := v1.Group("/card-owners")
 		cardOwners.Use(middleware.AuthMiddleware(jwtSecret))
 		{
-			cardOwners.POST("/register", h.RegisterCardOwner)
-			cardOwners.GET("/profile", h.GetCardOwnerProfile)
-			cardOwners.PUT("/profile", h.UpdateCardOwner)
-			cardOwners.DELETE("/profile", h.DeleteCardOwner)
-			cardOwners.GET("/all", h.GetAllCardOwners) // Admin only
+			cardOwners.POST("/register", h.RegisterCardOwner)          // Register single card
+			cardOwners.POST("/register-multiple", h.RegisterMultipleCards) // Register multiple cards
+			cardOwners.GET("/profile", h.GetCardOwnerProfile)          // Gets first card (backward compatibility)
+			cardOwners.GET("/profiles", h.GetCardOwnerProfiles)        // Gets all cards for user
+			cardOwners.PUT("/:id", h.UpdateCardOwner)                  // Update specific card owner by ID
+			cardOwners.DELETE("/:id", h.DeleteCardOwner)               // Delete specific card owner by ID
+			cardOwners.GET("/all", h.GetAllCardOwners)                 // Admin only
+			
+			// New API endpoints
+			cardOwners.POST("/validate-duplicate", h.ValidateDuplicateCardRegistration) // Validate duplicate registration
+			cardOwners.GET("/search/by-card", h.SearchCardOwnersByCardNameAndNumber)    // Search by card name and number
+			cardOwners.GET("/search/by-owner", h.SearchCardOwnersByIDCardOrPhone)       // Search by ID card or phone
 		}
 
 		// Protected routes (example)

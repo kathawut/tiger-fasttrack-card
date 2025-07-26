@@ -317,6 +317,32 @@ func (h *Handler) RegisterCardOwner(c *gin.Context) {
 	})
 }
 
+// RegisterMultipleCards handler
+func (h *Handler) RegisterMultipleCards(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	var req models.RegisterMultipleCardsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	cardOwners, err := h.Service.RegisterMultipleCards(userID.(uint), &req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Multiple cards registered successfully",
+		"data":    cardOwners,
+	})
+}
+
 // GetCardOwnerProfile handler
 func (h *Handler) GetCardOwnerProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
@@ -334,6 +360,26 @@ func (h *Handler) GetCardOwnerProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Card owner profile retrieved successfully",
 		"data":    profile,
+	})
+}
+
+// GetCardOwnerProfiles handler - gets all card registrations for authenticated user
+func (h *Handler) GetCardOwnerProfiles(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	profiles, err := h.Service.GetCardOwnerProfiles(userID.(uint))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Card owner profiles retrieved successfully",
+		"data":    profiles,
 	})
 }
 
@@ -365,13 +411,21 @@ func (h *Handler) UpdateCardOwner(c *gin.Context) {
 		return
 	}
 
+	// Get card owner ID from URL parameter
+	cardOwnerIDStr := c.Param("id")
+	cardOwnerID, err := strconv.ParseUint(cardOwnerIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid card owner ID"})
+		return
+	}
+
 	var req models.UpdateCardOwnerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	cardOwner, err := h.Service.UpdateCardOwner(userID.(uint), &req)
+	cardOwner, err := h.Service.UpdateCardOwner(userID.(uint), uint(cardOwnerID), &req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -391,7 +445,15 @@ func (h *Handler) DeleteCardOwner(c *gin.Context) {
 		return
 	}
 
-	err := h.Service.DeleteCardOwner(userID.(uint))
+	// Get card owner ID from URL parameter
+	cardOwnerIDStr := c.Param("id")
+	cardOwnerID, err := strconv.ParseUint(cardOwnerIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid card owner ID"})
+		return
+	}
+
+	err = h.Service.DeleteCardOwner(userID.(uint), uint(cardOwnerID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -399,5 +461,91 @@ func (h *Handler) DeleteCardOwner(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Card owner deleted successfully",
+	})
+}
+
+// ValidateDuplicateCardRegistration validates if a card registration would be duplicate
+func (h *Handler) ValidateDuplicateCardRegistration(c *gin.Context) {
+	var req struct {
+		CardID     uint   `json:"card_id" binding:"required"`
+		CardNumber string `json:"card_number" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.Service.CardOwnerService.ValidateDuplicateCardRegistration(req.CardID, req.CardNumber)
+	if err != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"error":     "Duplicate card registration",
+			"message":   err.Error(),
+			"duplicate": true,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "Card registration is valid",
+		"duplicate": false,
+	})
+}
+
+// SearchCardOwnersByCardNameAndNumber searches for card owners by card name and card number
+func (h *Handler) SearchCardOwnersByCardNameAndNumber(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	// Get query parameters
+	cardName := c.Query("card_name")
+	cardNumber := c.Query("card_number")
+
+	// At least one parameter should be provided
+	if cardName == "" && cardNumber == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "At least one search parameter (card_name or card_number) must be provided",
+		})
+		return
+	}
+
+	cardOwners, err := h.Service.CardOwnerService.SearchCardOwnersByCardNameAndNumber(userID.(uint), cardName, cardNumber)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Search completed successfully",
+		"data":    cardOwners,
+		"count":   len(cardOwners),
+	})
+}
+
+// SearchCardOwnersByIDCardOrPhone searches for card owners by ID card or phone number
+func (h *Handler) SearchCardOwnersByIDCardOrPhone(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	// Get query parameters
+	idCard := c.Query("id_card")
+	phoneNumber := c.Query("phone_number")
+
+	cardOwners, err := h.Service.CardOwnerService.SearchCardOwnersByIDCardOrPhone(userID.(uint), idCard, phoneNumber)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Search completed successfully",
+		"data":    cardOwners,
+		"count":   len(cardOwners),
 	})
 }

@@ -1,0 +1,954 @@
+{
+	"info": {
+		"_postman_id": "tiger-fasttrack-card-api",
+		"name": "Tiger FastTrack Card API",
+		"description": "Complete API collection for Tiger FastTrack Card system with authentication, card management, and card owner operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "tiger-fasttrack-api"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/health",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"health"
+					]
+				},
+				"description": "Health check endpoint to verify API is running"
+			},
+			"response": []
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"John Doe\",\n  \"role\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new user account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extract and save JWT token",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.token) {",
+									"        pm.collectionVariables.set(\"authToken\", response.token);",
+									"        console.log(\"Auth token saved:\", response.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login and receive JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Super Admin Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extract and save JWT token for super admin",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.token) {",
+									"        pm.collectionVariables.set(\"authToken\", response.token);",
+									"        console.log(\"Super Admin auth token saved:\", response.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{superAdminUsername}}@yourdomain.com\",\n  \"password\": \"{{superAdminPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login with super admin credentials (production deployment)"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/refresh",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "Refresh JWT token using refresh token"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for user registration, login, and token refresh"
+		},
+		{
+			"name": "User Management",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"profile"
+							]
+						},
+						"description": "Get current user profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe Updated\",\n  \"email\": \"newemail@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"profile"
+							]
+						},
+						"description": "Update user profile information"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"current_password\": \"password123\",\n  \"new_password\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/change-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"change-password"
+							]
+						},
+						"description": "Change user password"
+					},
+					"response": []
+				}
+			],
+			"description": "User profile management endpoints"
+		},
+		{
+			"name": "Card Management",
+			"item": [
+				{
+					"name": "Get All Cards",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cards",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cards"
+							]
+						},
+						"description": "Get all available cards (master data)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Card by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cards/{{cardId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cards",
+								"{{cardId}}"
+							]
+						},
+						"description": "Get specific card by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Card",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"card_name\": \"Premium Card\",\n  \"card_image\": \"premium_card.jpg\",\n  \"card_quantity\": 100\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cards",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cards"
+							]
+						},
+						"description": "Create a new card (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Card",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"card_name\": \"Premium Card Updated\",\n  \"card_image\": \"premium_card_v2.jpg\",\n  \"card_quantity\": 150\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cards/{{cardId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cards",
+								"{{cardId}}"
+							]
+						},
+						"description": "Update card information (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Card",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cards/{{cardId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cards",
+								"{{cardId}}"
+							]
+						},
+						"description": "Delete card (admin only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Card master data management endpoints"
+		},
+		{
+			"name": "Card Owner Management",
+			"item": [
+				{
+					"name": "Register Single Card",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"card_id\": 1,\n  \"card_number\": \"123456789\",\n  \"id_card\": \"ID123456789\",\n  \"phone_number\": \"555-0123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"register"
+							]
+						},
+						"description": "Register a single card to the authenticated user"
+					},
+					"response": []
+				},
+				{
+					"name": "Register Multiple Cards",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id_card\": \"ID123456789\",\n  \"phone_number\": \"555-0123\",\n  \"cards\": [\n    {\n      \"card_id\": 1,\n      \"card_number\": \"123456789\"\n    },\n    {\n      \"card_id\": 2,\n      \"card_number\": \"987654321\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/register-multiple",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"register-multiple"
+							]
+						},
+						"description": "Register multiple cards to the authenticated user in one request"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Card Owner Profile (First Card)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"profile"
+							]
+						},
+						"description": "Get first card owner profile (backward compatibility)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Card Owner Profiles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/profiles",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"profiles"
+							]
+						},
+						"description": "Get all card owner profiles for the authenticated user"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Card Owner",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"card_id\": 2,\n  \"card_number\": \"987654321\",\n  \"id_card\": \"ID123456789\",\n  \"phone_number\": \"555-0456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/{{cardOwnerId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"{{cardOwnerId}}"
+							]
+						},
+						"description": "Update specific card owner information by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Card Owner",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/{{cardOwnerId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"{{cardOwnerId}}"
+							]
+						},
+						"description": "Delete specific card owner registration by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Card Owners (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"all"
+							]
+						},
+						"description": "Get all card owners in the system (admin only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Card owner registration and management endpoints"
+		},
+		{
+			"name": "Validation & Search APIs",
+			"item": [
+				{
+					"name": "Validate Duplicate Card Registration",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"card_id\": 1,\n  \"card_number\": \"123456789\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/validate-duplicate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"validate-duplicate"
+							]
+						},
+						"description": "Validate if a card registration would be duplicate before actual registration"
+					},
+					"response": []
+				},
+				{
+					"name": "Search by Card Name and Number",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/search/by-card?card_name=Premium&card_number=123",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"search",
+								"by-card"
+							],
+							"query": [
+								{
+									"key": "card_name",
+									"value": "Premium",
+									"description": "Partial card name (case-insensitive)"
+								},
+								{
+									"key": "card_number",
+									"value": "123",
+									"description": "Partial card number"
+								}
+							]
+						},
+						"description": "Search for card owners by card name and/or card number (partial matching)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search by Card Name Only",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/search/by-card?card_name=Premium",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"search",
+								"by-card"
+							],
+							"query": [
+								{
+									"key": "card_name",
+									"value": "Premium",
+									"description": "Partial card name (case-insensitive)"
+								}
+							]
+						},
+						"description": "Search for card owners by card name only"
+					},
+					"response": []
+				},
+				{
+					"name": "Search by Card Number Only",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/search/by-card?card_number=123",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"search",
+								"by-card"
+							],
+							"query": [
+								{
+									"key": "card_number",
+									"value": "123",
+									"description": "Partial card number"
+								}
+							]
+						},
+						"description": "Search for card owners by card number only"
+					},
+					"response": []
+				},
+				{
+					"name": "Search by ID Card or Phone",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/search/by-owner?id_card=ID123&phone_number=555",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"search",
+								"by-owner"
+							],
+							"query": [
+								{
+									"key": "id_card",
+									"value": "ID123",
+									"description": "Partial ID card number (case-insensitive)"
+								},
+								{
+									"key": "phone_number",
+									"value": "555",
+									"description": "Partial phone number"
+								}
+							]
+						},
+						"description": "Search for card owners by ID card or phone number (OR logic, partial matching)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search by ID Card Only",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/search/by-owner?id_card=ID123",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"search",
+								"by-owner"
+							],
+							"query": [
+								{
+									"key": "id_card",
+									"value": "ID123",
+									"description": "Partial ID card number (case-insensitive)"
+								}
+							]
+						},
+						"description": "Search for card owners by ID card only"
+					},
+					"response": []
+				},
+				{
+					"name": "Search by Phone Number Only",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/card-owners/search/by-owner?phone_number=555",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"card-owners",
+								"search",
+								"by-owner"
+							],
+							"query": [
+								{
+									"key": "phone_number",
+									"value": "555",
+									"description": "Partial phone number"
+								}
+							]
+						},
+						"description": "Search for card owners by phone number only"
+					},
+					"response": []
+				}
+			],
+			"description": "New validation and search APIs for card owner management"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "cardId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "cardOwnerId",
+			"value": "1",
+			"type": "string"
+		}
+	]
+}

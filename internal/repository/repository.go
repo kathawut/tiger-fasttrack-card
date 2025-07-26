@@ -129,6 +129,15 @@ func (r *Repository) GetCardOwnerByUserID(userID uint) (*models.CardOwner, error
 	return &owner, nil
 }
 
+func (r *Repository) GetCardOwnersByUserID(userID uint) ([]models.CardOwner, error) {
+	var owners []models.CardOwner
+	err := r.DB.GetDB().Preload("User").Preload("Card").Where("user_id = ?", userID).Find(&owners).Error
+	if err != nil {
+		return nil, err
+	}
+	return owners, nil
+}
+
 func (r *Repository) GetCardOwnerByCardNumberAndCardID(cardNumber string, cardID uint) (*models.CardOwner, error) {
 	var owner models.CardOwner
 	err := r.DB.GetDB().Preload("User").Preload("Card").Where("card_number = ? AND card_id = ?", cardNumber, cardID).First(&owner).Error
