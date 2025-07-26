@@ -25,7 +25,7 @@ func New() *Config {
 	return &Config{
 		Environment: getEnv("ENVIRONMENT", "development"),
 		Port:        getEnv("PORT", "8080"),
-		DatabaseURL: getEnv("DATABASE_URL", ""),
+		DatabaseURL: getEnv("DATABASE_URL", "postgresql://tiger-app:AVNS_c5wTtwqDbeQ2wWTmcTo@private-tiger-card-db-do-user-527620-0.g.db.ondigitalocean.com:25060/tiger-card?sslmode=require"),
 		JWTSecret:   getEnv("JWT_SECRET", "your-secret-key"),
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "tiger-card-db-do-user-527620-0.g.db.ondigitalocean.com"),
