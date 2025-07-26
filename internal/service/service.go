@@ -2,190 +2,115 @@ package service
 
 import (
 	"errors"
-	"tiger-fasttrack-card/internal/models"
 	"tiger-fasttrack-card/internal/repository"
 	"tiger-fasttrack-card/internal/utils"
+	"tiger-fasttrack-card/internal/models"
 )
 
+// Service is the main service that coordinates all sub-services
 type Service struct {
-	Repo       *repository.Repository
-	JWTManager *utils.JWTManager
+	AuthService      *AuthService
+	CardService      *CardService
+	CardOwnerService *CardOwnerService
 }
 
+// New creates a new Service instance with all sub-services
 func New(repo *repository.Repository, jwtSecret string) *Service {
+	jwtManager := utils.NewJWTManager(jwtSecret)
+	
+	// Create auth service first as other services depend on it
+	authService := NewAuthService(repo, jwtManager)
+	
+	// Create other services with auth service dependency
+	cardService := NewCardService(repo, authService)
+	cardOwnerService := NewCardOwnerService(repo, authService)
+
 	return &Service{
-		Repo:       repo,
-		JWTManager: utils.NewJWTManager(jwtSecret),
+		AuthService:      authService,
+		CardService:      cardService,
+		CardOwnerService: cardOwnerService,
 	}
 }
 
-// Example service methods
-// Add your business logic here when you create models
-
-/*
-func (s *Service) GetAllCards() ([]models.Card, error) {
-	return s.Repo.GetAllCards()
-}
-
-func (s *Service) GetCardByID(id uint) (*models.Card, error) {
-	return s.Repo.GetCardByID(id)
-}
-
-func (s *Service) CreateCard(card *models.Card) error {
-	// Add validation logic here
-	return s.Repo.CreateCard(card)
-}
-
-func (s *Service) UpdateCard(id uint, card *models.Card) error {
-	// Add validation logic here
-	card.ID = id
-	return s.Repo.UpdateCard(card)
-}
-
-func (s *Service) DeleteCard(id uint) error {
-	return s.Repo.DeleteCard(id)
-}
-*/
-
-// Authentication services
-
+// Authentication service delegation methods
 func (s *Service) Register(req *models.RegisterRequest) (*models.User, error) {
-	// Check if username is taken
-	existingUser, _ := s.Repo.GetUserByUsername(req.Username)
-	if existingUser != nil {
-		return nil, errors.New("username is already taken")
-	}
-
-	// Hash password
-	hashedPassword, err := utils.HashPassword(req.Password)
-	if err != nil {
-		return nil, errors.New("failed to hash password")
-	}
-
-	// Create user
-	user := &models.User{
-		Username:  req.Username,
-		Password:  hashedPassword,
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		IsActive:  true,
-		Role:      "user",
-	}
-
-	err = s.Repo.CreateUser(user)
-	if err != nil {
-		return nil, errors.New("failed to create user")
-	}
-
-	return user, nil
+	return s.AuthService.Register(req)
 }
 
 func (s *Service) Login(req *models.LoginRequest) (*models.LoginResponse, error) {
-	// Get user by username
-	user, err := s.Repo.GetUserByUsername(req.Username)
-	if err != nil {
-		return nil, errors.New("invalid username or password")
-	}
-
-	// Check if user is active
-	if !user.IsActive {
-		return nil, errors.New("account is deactivated")
-	}
-
-	// Verify password
-	if !utils.CheckPassword(req.Password, user.Password) {
-		return nil, errors.New("invalid username or password")
-	}
-
-	// Generate tokens
-	token, err := s.JWTManager.GenerateToken(user.ID, user.Username, user.Role)
-	if err != nil {
-		return nil, errors.New("failed to generate token")
-	}
-
-	refreshToken, err := s.JWTManager.GenerateRefreshToken(user.ID, user.Username, user.Role)
-	if err != nil {
-		return nil, errors.New("failed to generate refresh token")
-	}
-
-	return &models.LoginResponse{
-		Token:        token,
-		RefreshToken: refreshToken,
-		User:         *user,
-	}, nil
+	return s.AuthService.Login(req)
 }
 
 func (s *Service) RefreshToken(refreshToken string) (string, error) {
-	claims, err := s.JWTManager.ValidateToken(refreshToken)
-	if err != nil {
-		return "", errors.New("invalid refresh token")
-	}
-
-	// Generate new access token
-	newToken, err := s.JWTManager.GenerateToken(claims.UserID, claims.Username, claims.Role)
-	if err != nil {
-		return "", errors.New("failed to generate new token")
-	}
-
-	return newToken, nil
+	return s.AuthService.RefreshToken(refreshToken)
 }
 
 func (s *Service) GetUserProfile(userID uint) (*models.User, error) {
-	return s.Repo.GetUserByID(userID)
+	return s.AuthService.GetUserProfile(userID)
 }
 
 func (s *Service) UpdateUserProfile(userID uint, req *models.UpdateProfileRequest) (*models.User, error) {
-	user, err := s.Repo.GetUserByID(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check if username is taken by another user
-	if req.Username != "" && req.Username != user.Username {
-		existingUser, _ := s.Repo.GetUserByUsername(req.Username)
-		if existingUser != nil && existingUser.ID != userID {
-			return nil, errors.New("username is already taken")
-		}
-		user.Username = req.Username
-	}
-
-	if req.FirstName != "" {
-		user.FirstName = req.FirstName
-	}
-	if req.LastName != "" {
-		user.LastName = req.LastName
-	}
-
-	err = s.Repo.UpdateUser(user)
-	if err != nil {
-		return nil, errors.New("failed to update profile")
-	}
-
-	return user, nil
+	return s.AuthService.UpdateUserProfile(userID, req)
 }
 
 func (s *Service) ChangePassword(userID uint, req *models.ChangePasswordRequest) error {
-	user, err := s.Repo.GetUserByID(userID)
+	return s.AuthService.ChangePassword(userID, req)
+}
+
+// Card service delegation methods
+func (s *Service) GetAllCards(userID uint) ([]models.Card, error) {
+	return s.CardService.GetAllCards(userID)
+}
+
+func (s *Service) GetCardByID(userID uint, id uint) (*models.Card, error) {
+	return s.CardService.GetCardByID(userID, id)
+}
+
+func (s *Service) CreateCard(userID uint, req *models.CreateCardRequest) (*models.Card, error) {
+	return s.CardService.CreateCard(userID, req)
+}
+
+func (s *Service) UpdateCard(userID uint, id uint, req *models.UpdateCardRequest) (*models.Card, error) {
+	return s.CardService.UpdateCard(userID, id, req)
+}
+
+func (s *Service) DeleteCard(userID uint, id uint) error {
+	return s.CardService.DeleteCard(userID, id)
+}
+
+// CardOwner service delegation methods
+func (s *Service) RegisterCardOwner(userID uint, req *models.RegisterOwnerRequest) (*models.CardOwner, error) {
+	return s.CardOwnerService.RegisterCardOwner(userID, req)
+}
+
+func (s *Service) RegisterMultipleCards(userID uint, req *models.RegisterMultipleCardsRequest) ([]models.CardOwner, error) {
+	return s.CardOwnerService.RegisterMultipleCards(userID, req)
+}
+
+func (s *Service) GetCardOwnerProfile(userID uint) (*models.CardOwnerWithCard, error) {
+	// For backward compatibility, get the first card owner registration
+	profiles, err := s.CardOwnerService.GetCardOwnerProfiles(userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	// Verify current password
-	if !utils.CheckPassword(req.CurrentPassword, user.Password) {
-		return errors.New("current password is incorrect")
+	if len(profiles) == 0 {
+		return nil, errors.New("card owner not found")
 	}
+	return &profiles[0], nil
+}
 
-	// Hash new password
-	hashedPassword, err := utils.HashPassword(req.NewPassword)
-	if err != nil {
-		return errors.New("failed to hash new password")
-	}
+func (s *Service) GetCardOwnerProfiles(userID uint) ([]models.CardOwnerWithCard, error) {
+	return s.CardOwnerService.GetCardOwnerProfiles(userID)
+}
 
-	user.Password = hashedPassword
-	err = s.Repo.UpdateUser(user)
-	if err != nil {
-		return errors.New("failed to update password")
-	}
+func (s *Service) GetAllCardOwners(userID uint) ([]models.CardOwnerWithCard, error) {
+	return s.CardOwnerService.GetAllCardOwners(userID)
+}
 
-	return nil
+func (s *Service) UpdateCardOwner(userID uint, cardOwnerID uint, req *models.UpdateCardOwnerRequest) (*models.CardOwner, error) {
+	return s.CardOwnerService.UpdateCardOwner(userID, cardOwnerID, req)
+}
+
+func (s *Service) DeleteCardOwner(userID uint, cardOwnerID uint) error {
+	return s.CardOwnerService.DeleteCardOwner(userID, cardOwnerID)
 }
