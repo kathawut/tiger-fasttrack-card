@@ -31,14 +31,26 @@ func Setup(router *gin.Engine, h *handlers.Handler, jwtSecret string) {
 			users.POST("/change-password", h.ChangePassword)
 		}
 
-		// Cards routes
+		// Cards routes (protected)
 		cards := v1.Group("/cards")
+		cards.Use(middleware.AuthMiddleware(jwtSecret))
 		{
 			cards.GET("", h.GetCards)
 			cards.GET("/:id", h.GetCardByID)
 			cards.POST("", h.CreateCard)
 			cards.PUT("/:id", h.UpdateCard)
 			cards.DELETE("/:id", h.DeleteCard)
+		}
+
+		// Card Owner routes (protected)
+		cardOwners := v1.Group("/card-owners")
+		cardOwners.Use(middleware.AuthMiddleware(jwtSecret))
+		{
+			cardOwners.POST("/register", h.RegisterCardOwner)
+			cardOwners.GET("/profile", h.GetCardOwnerProfile)
+			cardOwners.PUT("/profile", h.UpdateCardOwner)
+			cardOwners.DELETE("/profile", h.DeleteCardOwner)
+			cardOwners.GET("/all", h.GetAllCardOwners) // Admin only
 		}
 
 		// Protected routes (example)
