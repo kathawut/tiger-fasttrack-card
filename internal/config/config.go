@@ -23,17 +23,17 @@ type DatabaseConfig struct {
 
 func New() *Config {
 	return &Config{
-		Environment: getEnv("ENVIRONMENT", "development"),
+		Environment: getEnv("ENVIRONMENT", "production"),
 		Port:        getEnv("PORT", "8080"),
-		DatabaseURL: getEnv("DATABASE_URL", "postgresql://tiger-app:AVNS_c5wTtwqDbeQ2wWTmcTo@private-tiger-card-db-do-user-527620-0.g.db.ondigitalocean.com:25060/tiger-card?sslmode=require"),
-		JWTSecret:   getEnv("JWT_SECRET", "your-secret-key"),
+		DatabaseURL: getEnv("DATABASE_URL", "postgresql://tiger-app:AVNS_c5wTtwqDbeQ2wWTmcTo@private-tiger-card-db-do-user-527620-0.g.db.ondigitalocean.com:25060/tiger-card?sslmode=verify-full"),
+		JWTSecret:   getEnv("JWT_SECRET", "79dbfcfcd07688b791aacd22fb797354"),
 		Database: DatabaseConfig{
-			Host:     getEnv("DB_HOST", "tiger-card-db-do-user-527620-0.g.db.ondigitalocean.com"),
+			Host:     getEnv("DB_HOST", "private-tiger-card-db-do-user-527620-0.g.db.ondigitalocean.com"),
 			Port:     getEnv("DB_PORT", "25060"),
-			User:     getEnv("DB_USER", "postgres"),
-			Password: getEnv("DB_PASSWORD", ""),
-			Name:     getEnv("DB_NAME", "tiger_fasttrack"),
-			SSLMode:  getEnv("DB_SSLMODE", "enable"),
+			User:     getEnv("DB_USER", "tiger-app"),
+			Password: getEnv("DB_PASSWORD", "AVNS_c5wTtwqDbeQ2wWTmcTo"),
+			Name:     getEnv("DB_NAME", "tiger-card"),
+			SSLMode:  getEnv("DB_SSLMODE", "verify-full"),
 		},
 	}
 }
