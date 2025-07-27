@@ -13,7 +13,7 @@ DB_PORT=5432
 DB_USER=your-db-user
 DB_PASSWORD=your-db-password
 DB_NAME=tiger_fasttrack_card
-DB_SSLMODE=require
+DB_SSLMODE=verify-full
 
 # Application Configuration
 PORT=8080
