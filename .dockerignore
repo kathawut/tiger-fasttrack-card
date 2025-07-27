@@ -2,48 +2,26 @@
 .git
 .gitignore
 
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.dev.yml
+.dockerignore
+
+# IDE / Editor
+.idea/
+.vscode/
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+tiger-fasttrack-card
+
 # Documentation
 *.md
-POSTMAN_README.md
-DEPLOYMENT_GUIDE.md
 
-# Development files
-#.env
-.env.example
-.vscode/
-.idea/
-
-# Dependencies
-node_modules/
-
-# Build artifacts
-tiger-fasttrack-card
-bin/
-
-# Test files
-*_test.go
-test_*.go
-test_api.sh
-
-# Postman collections
-*.postman_collection.json
-*.postman_environment.json
-
-# Scripts
-scripts/
-create_super_admin.sh
-
-# Logs
-*.log
-
-# Temporary files
-tmp/
-temp/
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Docker
-docker-compose.yml
-Dockerfile
+# Environment files
+.env*
