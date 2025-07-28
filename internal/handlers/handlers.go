@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"time"
 	"tiger-fasttrack-card/internal/models"
 	"tiger-fasttrack-card/internal/service"
 
@@ -22,8 +23,10 @@ func New(svc *service.Service) *Handler {
 // Health check handler
 func (h *Handler) HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"status":  "ok",
-		"message": "Tiger FastTrack Card API is running",
+		"status":    "ok",
+		"message":   "Tiger FastTrack Card API is running",
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
+		"version":   "1.0.0",
 	})
 }
 

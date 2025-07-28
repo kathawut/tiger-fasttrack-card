@@ -20,28 +20,31 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -a -o /app/tiger-fasttrack-card main.go
 
 # Production stage
-# Use a minimal and secure base image from Chainguard. It's similar to distroless
-# but includes essential tools like curl for health checks.
-FROM gcr.io/distroless/static-debian11:nonroot
+# Use Alpine for a lightweight image with curl available for health checks
+FROM alpine:latest
 
-# The Chainguard image already includes ca-certificates and runs as a non-root user by default.
+# Install ca-certificates and curl for HTTPS calls and health checks
+RUN apk --no-cache add ca-certificates curl
+
+# Create non-root user
+RUN adduser -D -s /bin/sh appuser
+
+# Set working directory
 WORKDIR /app
 
 # Copy binary from builder stage
 COPY --from=builder /app/tiger-fasttrack-card /app/tiger-fasttrack-card
 
-# Copy any static assets if needed
-# COPY --from=builder /app/static ./static
+# Change ownership to appuser
+RUN chown -R appuser:appuser /app
+USER appuser
 
 # Expose port
 EXPOSE 8080
 
-USER nonroot:nonroot
-
-# Add health check
-# Use curl (available in the chainguard image) instead of wget
-# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-#   CMD curl --fail --silent --show-error http://localhost:8080/health || exit 1
+# Add health check using curl
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl --fail --silent http://localhost:8080/health || exit 1
 
 # Run the application
 CMD ["/app/tiger-fasttrack-card"]

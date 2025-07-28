@@ -33,7 +33,7 @@ func New() *Config {
 			User:     getEnv("DB_USER", "doadmin"),
 			Password: getEnv("DB_PASSWORD", ""),
 			Name:     getEnv("DB_NAME", "tiger-card"),
-			SSLMode:  getEnv("DB_SSLMODE", "verify-full"),
+			SSLMode:  getEnv("DB_SSLMODE", "require"),
 		},
 	}
 }

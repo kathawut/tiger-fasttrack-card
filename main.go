@@ -24,21 +24,30 @@ import (
 func main() {
 	// Note: Using only environment variables from DigitalOcean App Platform
 	// No .env file loading needed in production
+	log.Println("Starting Tiger FastTrack Card API...")
 
 	// Initialize configuration
 	cfg := config.New()
+	log.Printf("Environment: %s", cfg.Environment)
+	log.Printf("Port: %s", cfg.Port)
+	log.Printf("Database Host: %s", cfg.Database.Host)
+	log.Printf("Database SSL Mode: %s", cfg.Database.SSLMode)
 
 	// Initialize database
+	log.Println("Connecting to database...")
 	db, err := database.New(cfg)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 	defer db.Close()
+	log.Println("Database connection established successfully")
 
 	// Run database migrations
+	log.Println("Running database migrations...")
 	if err := migrations.RunMigrations(db); err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
+	log.Println("Database migrations completed successfully")
 
 	// Set Gin mode
 	if cfg.Environment == "production" {
