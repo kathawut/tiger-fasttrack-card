@@ -19,14 +19,11 @@ import (
 	"tiger-fasttrack-card/internal/service"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Load environment variables
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-	}
+	// Note: Using only environment variables from DigitalOcean App Platform
+	// No .env file loading needed in production
 
 	// Initialize configuration
 	cfg := config.New()
