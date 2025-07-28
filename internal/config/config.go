@@ -31,7 +31,7 @@ func New() *Config {
 			Host:     getEnv("DB_HOST", "private-tiger-card-db-do-user-527620-0.g.db.ondigitalocean.com"),
 			Port:     getEnv("DB_PORT", "25060"),
 			User:     getEnv("DB_USER", "doadmin"),
-			Password: getEnv("DB_PASSWORD", "AVNS_18zTR8noajdrYFr_rys"),
+			Password: getEnv("DB_PASSWORD", ""),
 			Name:     getEnv("DB_NAME", "tiger-card"),
 			SSLMode:  getEnv("DB_SSLMODE", "verify-full"),
 		},
